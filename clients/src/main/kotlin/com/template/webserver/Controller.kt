@@ -9,8 +9,7 @@ import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatus.*
+import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.http.MediaType.TEXT_PLAIN_VALUE
 import org.springframework.http.ResponseEntity
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -61,7 +61,7 @@ class Controller(rpc: NodeRPCConnection) {
      */
     @GetMapping(value = ["ious"], produces = [APPLICATION_JSON_VALUE])
     fun getIOUs(): ResponseEntity<List<StateAndRef<CashState>>> {
-        return ResponseEntity.ok(proxy.vaultQueryBy<CashState>().states.toList())
+        return ResponseEntity.ok(proxy.vaultQueryBy<CashState>().states)
     }
 
 
@@ -71,7 +71,7 @@ class Controller(rpc: NodeRPCConnection) {
 
         val symbol = amount.substring(0, 3)
         val iouCurrency = Currency.getInstance(symbol)
-        val iouAmount = amount.substring(3, amount.length).toLong()
+        val iouAmount = amount.substring(3, amount.length).toBigDecimal()
 
         val transferCurrency = request.getParameter("transferCurrency")
         val partyName = request.getParameter("partyName")
@@ -79,12 +79,12 @@ class Controller(rpc: NodeRPCConnection) {
         if (partyName == null) {
             return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
         }
-        if (iouAmount <= 0) {
+        if (iouAmount <= BigDecimal.ZERO) {
             return ResponseEntity.badRequest().body("Query parameter 'iouAmount' must be non-negative.\n")
         }
 
         val currency = Currency.getInstance(transferCurrency)
-        val transfereeAmount = Amount(iouAmount, iouCurrency)
+        val transfereeAmount = Amount(1, iouAmount, iouCurrency)
 
         val partyX500Name = CordaX500Name.parse(partyName)
         val otherParty = proxy.wellKnownPartyFromX500Name(partyX500Name)

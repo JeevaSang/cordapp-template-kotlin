@@ -54,8 +54,8 @@ object CashFlows {
 
             log.info("cash flow calling")
 
-            val transferorCurrency = iouAmount.token.displayName
-            val transfereeCurrency = transferCurrency.displayName
+            val transferorCurrency = iouAmount.token.currencyCode
+            val transfereeCurrency = transferCurrency.currencyCode
             log.info("send amount $iouAmount")
 
             // Obtain a reference to the notary we want to use.
@@ -67,7 +67,8 @@ object CashFlows {
 
             val exchangeRate = serviceHub.cordaService(CurrencyService::class.java).getCurrent(transferorCurrency, transfereeCurrency)
             log.info("Exchange rate price for $transferorCurrency - $exchangeRate")
-            val transfereeAmount = Amount(iouAmount.quantity * exchangeRate, transferCurrency)
+            val multiAmt = iouAmount.displayTokenSize.multiply(exchangeRate.toBigDecimal())
+            val transfereeAmount = Amount(1, multiAmt, transferCurrency)
             log.info("Receive amount $transfereeAmount")
 
             // Generate an unsigned transaction.
