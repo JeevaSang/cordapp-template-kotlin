@@ -59,7 +59,7 @@ class Controller(rpc: NodeRPCConnection) {
     /**
      * Displays all IOU states that exist in the node's vault.
      */
-    @GetMapping(value = ["cash"], produces = [APPLICATION_JSON_VALUE])
+    @GetMapping(produces = [APPLICATION_JSON_VALUE])
     fun getIOUs(): ResponseEntity<List<StateAndRef<ContractState>>> {
         return ResponseEntity.ok(proxy.vaultQuery(CashState::class.java).states)
     }
@@ -67,23 +67,25 @@ class Controller(rpc: NodeRPCConnection) {
 
     @PostMapping(value = ["amount"], produces = [TEXT_PLAIN_VALUE], headers = ["Content-Type=application/x-www-form-urlencoded"])
     fun transferAmount(request: HttpServletRequest): ResponseEntity<String> {
-        val amount = request.getParameter("amount")
+        val amount = request.getParameter("transferorAmount")
 
         val symbol = amount.substring(0, 3)
         val iouCurrency = Currency.getInstance(symbol)
+                ?: return ResponseEntity.badRequest().body("Invalid $symbol currency code.\n")
+
         val iouAmount = amount.substring(3, amount.length).toBigDecimal()
 
-        val transferCurrency = request.getParameter("transferCurrency")
-        val partyName = request.getParameter("partyName")
+        val transferCurrency = request.getParameter("transfereeCurrency")
+        val partyName = request.getParameter("transferee")
+                ?: return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
 
-        if (partyName == null) {
-            return ResponseEntity.badRequest().body("Query parameter 'partyName' must not be null.\n")
-        }
         if (iouAmount <= BigDecimal.ZERO) {
             return ResponseEntity.badRequest().body("Query parameter 'iouAmount' must be non-negative.\n")
         }
 
         val currency = Currency.getInstance(transferCurrency)
+                ?: return ResponseEntity.badRequest().body("Invalid $transferCurrency currency code.\n")
+
         val transfereeAmount = Amount(1, iouAmount, iouCurrency)
 
         val partyX500Name = CordaX500Name.parse(partyName)

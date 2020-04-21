@@ -23,20 +23,20 @@ object mapper {
         try {
          // val data = getCurrent("USD","INR")
           //  println(data)
-            val am = "0.01303".toBigDecimal();
-            val inn = "2000".toLong();
+          //  val am = "0.01303".toBigDecimal();
+            //val inn = "2000".toLong();
 
             val cur =Currency.getInstance("USD")
-            println(am.multiply(inn.toBigDecimal()))
+            //println(am.multiply(inn.toBigDecimal()))
 
-            println("20".toDouble())
+           // println("20".toDouble())
 
-            println("15".toBigDecimal().multiply("76.24".toDouble().toBigDecimal()))
+            //println("15".toBigDecimal().multiply("76.24".toDouble().toBigDecimal()))
 
-            val data = Amount (1,"26.06".toBigDecimal(),cur)
+            //val data = Amount (1,"26.06".toBigDecimal(),cur)
             //println(data.token.toString())
             //println(cur.currencyCode)
-            println(data.displayTokenSize)
+            println(cur.currencyCode)
 
         } catch (e: JsonGenerationException) {
             e.printStackTrace()

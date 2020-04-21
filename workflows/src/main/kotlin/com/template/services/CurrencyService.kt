@@ -48,23 +48,6 @@ class CurrencyService(val serviceHub: AppServiceHub) :
         val log = loggerFor<CurrencyService>()
     }
 
-
-    /* fun sign(ftx: SignedTransaction): TransactionSignature {
-         //ftx.verify()
-         val output = ftx.tx.outputsOfType<CashState>().single()
-         var isValid = true
-         serviceHub.cordaService(CurrencyService::class.java).getCurrent(output.transferor.amount.token.currencyCode, output.transferee.amount.token.currencyCode).let {
-             isValid = output.exRate == it
-         }
-         if (isValid) {
-             return serviceHub.createSignature(ftx, key)
-         } else {
-             throw InvalidExchangePriceFlowException("Oracle signature requested over Transaction: ${ftx.id} is invalid")
-         }
-     }
-
-     private val key = serviceHub.myInfo.legalIdentities.first().owningKey      */
-
 }
 
 class InvalidExchangePriceFlowException(message: String?) : FlowException(message)

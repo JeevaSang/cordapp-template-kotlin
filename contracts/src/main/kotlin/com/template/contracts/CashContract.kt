@@ -22,7 +22,6 @@ class CashContract : Contract {
         requireThat {
             // Generic constraints around the IOU transaction.
             "Only one output state should be created." using (tx.outputs.size == 1)
-            //val inState = tx.inputsOfType<CashState>().single()
             val out = tx.outputsOfType<CashState>().single()
             "The IOU's value must be non-negative." using (out.transferee.amount.displayTokenSize > BigDecimal.ZERO)
             "The Sender and the Receiver cannot be the same entity." using (out.transferor != out.transferee)
