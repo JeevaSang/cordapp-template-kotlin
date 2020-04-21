@@ -6,6 +6,7 @@ import net.corda.core.contracts.Contract
 import net.corda.core.contracts.requireSingleCommand
 import net.corda.core.contracts.requireThat
 import net.corda.core.transactions.LedgerTransaction
+import java.math.BigDecimal
 
 class CashContract : Contract {
     companion object {
@@ -20,11 +21,13 @@ class CashContract : Contract {
         val command = tx.commands.requireSingleCommand<Commands.Transfer>()
         requireThat {
             // Generic constraints around the IOU transaction.
-            // "The IOU's value must be non-negative." using (tx.inputsOfType<CashState>().single().transferor.amount.quantity > 0)
             "Only one output state should be created." using (tx.outputs.size == 1)
+            //val inState = tx.inputsOfType<CashState>().single()
             val out = tx.outputsOfType<CashState>().single()
+            "The IOU's value must be non-negative." using (out.transferee.amount.displayTokenSize > BigDecimal.ZERO)
             "The Sender and the Receiver cannot be the same entity." using (out.transferor != out.transferee)
             "All of the participants must be signers." using (command.signers.containsAll(out.participants.map { it.owningKey }))
+            "Amount is equal to the multiplied by the exchange price" using (out.transferee.amount.displayTokenSize == out.transferor.amount.displayTokenSize.multiply(out.exRate.toBigDecimal()))
         }
 
     }

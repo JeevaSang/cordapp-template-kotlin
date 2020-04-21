@@ -3,10 +3,10 @@ package com.template.webserver
 import com.template.flows.CashFlows.Initiator
 import com.template.states.CashState
 import net.corda.core.contracts.Amount
+import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
-import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.CREATED
@@ -59,9 +59,9 @@ class Controller(rpc: NodeRPCConnection) {
     /**
      * Displays all IOU states that exist in the node's vault.
      */
-    @GetMapping(value = ["ious"], produces = [APPLICATION_JSON_VALUE])
-    fun getIOUs(): ResponseEntity<List<StateAndRef<CashState>>> {
-        return ResponseEntity.ok(proxy.vaultQueryBy<CashState>().states)
+    @GetMapping(value = ["cash"], produces = [APPLICATION_JSON_VALUE])
+    fun getIOUs(): ResponseEntity<List<StateAndRef<ContractState>>> {
+        return ResponseEntity.ok(proxy.vaultQuery(CashState::class.java).states)
     }
 
 
@@ -92,7 +92,9 @@ class Controller(rpc: NodeRPCConnection) {
 
         return try {
             val signedTx = proxy.startTrackedFlow(::Initiator, transfereeAmount, currency, otherParty).returnValue.getOrThrow()
-            ResponseEntity.status(CREATED).body("Transaction id ${signedTx.id} committed to ledger and data ${signedTx.coreTransaction.outputStates.first() as CashState}.\n")
+            val state = signedTx.coreTransaction.outputsOfType(CashState::class.java).first()
+            logger.info(state.toString())
+            ResponseEntity.status(CREATED).body("Transaction id ${signedTx.id} committed to ledger and data ${signedTx.coreTransaction.outputs.single()}.\n")
 
         } catch (ex: Throwable) {
             logger.error(ex.message, ex)
